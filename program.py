@@ -2,10 +2,10 @@ import datetime as dt
 
 
 class Record:
-    def __init__(self, amount, comment, date=''):
+    def __init__(self, amount, comment, date=None):
         self.amount = amount
         self.comment = comment
-        if date == '':
+        if not date:
             self.date = dt.datetime.now().date()
         else:
             self.date = dt.datetime.strptime(date, '%d.%m.%Y').date()
@@ -21,8 +21,9 @@ class Calculator:
 
     def get_today_stats(self):
         today_count = 0
+        today = dt.datetime.now().date()
         for i in self.records:
-            if i.date == dt.datetime.now().date():
+            if i.date == today:
                today_count += i.amount
         return today_count
 
@@ -46,7 +47,7 @@ class CashCalculator(Calculator):
             return f"На сегодня осталось {today_stats} {currency}"
         elif today_stats == 0:
             return "Денег нет, держись"
-        elif today_stats < 0:
+        else:
             return f"Денег нет, держись: твой долг {today_stats} {currency}"
 
 
@@ -54,7 +55,7 @@ class CaloriesCalculator(Calculator):
     def get_calories_remained(self):
         if self.limit > self.get_today_stats():
             return f"Сегодня можно съесть что-нибудь ещё, но с общей калорийностью не более {self.limit - self.get_today_stats()} кКал"
-        elif self.limit <= self.get_today_stats():
+        else:
             return "Хватит есть!"
         
 
