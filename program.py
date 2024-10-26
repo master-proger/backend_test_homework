@@ -4,59 +4,57 @@ import datetime as dt
 class Record:
     def __init__(self, amount, comment, date=''):
         self.amount = amount
-        if date == '' or date == dt.datetime.now().date():
-            date = dt.datetime.now().date()
+        self.comment = comment
+        if date == '':
+            self.date = dt.datetime.now().date()
         else:
             self.date = dt.datetime.strptime(date, '%d.%m.%Y').date()
-        self.comment = comment
 
 
 class Calculator:
     def __init__(self, limit):
         self.limit = limit
-        self.record = []
+        self.records = []
 
     def add_record(self, record):
-        self.record.append(Record)
+        self.records.append(record)
+
+    def get_today_stats(self):
+        today_count = 0
+        for i in self.records:
+            if i.date == dt.datetime.now().date():
+               today_count += i.amount
+        return today_count
 
     def get_week_stats(self):
         week_count = 0
         today = dt.date.today()
         week_age = today - dt.timedelta(days=7)
-        for i in self.record:
+        for i in self.records:
             if week_age <= i.date <= today:
                 week_count += i.amount
         return week_count
 
+    def today_stats(self):
+        return self.limit - self.get_today_stats()
+
 
 class CashCalculator(Calculator):
-    def get_today_stats(self, limit):
-        for i in self.record:
-            if i.date == dt.datetime.now().date():
-               self.limit -= i.amount
-
     def get_today_cash_remained(self, currency):
-        if self.limit > 0:
-            return f"На сегодня осталось {self.limit} {currency}"
-        elif self.limit == 0:
-            return f"Денег нет, держись"
-        elif self.limit < 0:
-            return f"Денег нет, держись: твой долг {self.limit} {currency}"
+        today_stats = super().today_stats()
+        if today_stats > 0:
+            return f"На сегодня осталось {today_stats} {currency}"
+        elif today_stats == 0:
+            return "Денег нет, держись"
+        elif today_stats < 0:
+            return f"Денег нет, держись: твой долг {today_stats} {currency}"
 
 
 class CaloriesCalculator(Calculator):
-    def __init__(self, eaten):
-        self.eaten = 0
-
-    def get_today_stats(self):
-        for i in self.record:
-            if i.date == dt.datetime.now().date():
-               self.eaten += i.amount
-
     def get_calories_remained(self):
-        if self.limit > self.eaten:
-            return f"Сегодня можно съесть что-нибудь ещё, но с общей калорийностью не более {self.limit - self.eaten} кКал"
-        elif self.limit <= self.eaten:
+        if self.limit > self.get_today_stats():
+            return f"Сегодня можно съесть что-нибудь ещё, но с общей калорийностью не более {self.limit - self.get_today_stats()} кКал"
+        elif self.limit <= self.get_today_stats():
             return "Хватит есть!"
         
 
